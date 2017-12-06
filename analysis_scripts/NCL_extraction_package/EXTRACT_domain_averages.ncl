@@ -71,8 +71,8 @@ use_local_time@offset = 8
 plot_selected_times = True
 day = (/"*"/)
 hour = (/"00","03","06","09","12","15","18","21"/)
-month = (/"*"/)   ; don't change this - always use "*"
-year  = (/"*"/)   ; don't change this - always use "*"
+month = (/"*"/)  
+year  = (/"*"/)  
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
