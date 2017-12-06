@@ -78,27 +78,26 @@ import RadDecomp_functions as radfn
 #=============================================================================#
 
 #-- Define directories to find the data
-COMPDir = '/Users/XXXX/'
-DATADir = COMPDir + 'XXXX/DATA/domain_avg_data/'
-OUTDir  = COMPDir + 'XXXX/plots/RadDecomp_plots/'
+COMPDir = '/Users/lowe/work/manchester/CCN-VOL/'
+DATADir = COMPDir + 'model_data/rad_force_data/'
+OUTDir  = COMPDir + 'plots/rad_force/'
 
-#-- List emission scenarios
-scen_list = [ 'BASE' ] # scenario names for directory
+#-- List emission scenarios for comparison
+scen_list = [ 'NDOWN_VBS_equilib_run_dry_v3.8.1' ] # scenario names for directory
 # Link name to full name for titles on plots:
-scenario_name = { 'BASE':'BASE' }
+scenario_name = { 'NDOWN_VBS_equilib_run_dry_v3.8.1':'BASE' }
 
 #-- Will assume we are finding difference to a scenario with a portion of 
 #     all emissions, or all emissions, removed (NOEMISS)
-scen_nE    = 'nE'
-scen_nE_nA = 'nE_nA'
+scen_nE    = 'NDOWN_VBS_equilib_run_wet_v3.8.1'
+scen_nE_nA = 'NDOWN_VBS_equilib_run_wet_v3.8.1_nA'
 
 #-- List subdomains
-dom_list = [ 'd01', 'SD1', 'SD2' ]
-dom_list = [ 'EC' ] #, 'SB', 'NCP' ]
-dom_name = { 'd01':'FullDomain', 'SD1':'Subdomain1', 'SD2':'Subdomain2' }            
+dom_list = [ 'domain' ]
+dom_name = { 'domain':'FullDomain' }            
 
 #-- Limits on x- and y- axis: change a appropriate
-x_lim   = [ 0, 24] # hours in day
+x_lim   = [ 0, 48] # hours in day
 x_ticks = [ 3, 6, 9, 12, 15, 18, 21, 24 ]
 
 #-- Min and max radiative effect (in W/m2), for SW and LW plots
@@ -106,8 +105,8 @@ sw_ylim = [-6, 6]
 lw_ylim = [-2, 2]
 
 #-- Method for calculating uncertainty:
-error_type = 'corrected_standard_error'
-# error_type = 'standard_error'
+error_type = 'SE_corr'  # standard error corrected
+# error_type = 'SE'     # standard error (uncorrected)
 
 #=============================================================================#
 #==     2.       Load the data                                              ==#
@@ -124,56 +123,56 @@ for scen in scen_list:
 
         #-- Load variables from BASE scenario
         SWUPT_BASE    = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/SWUPT_' + dom + '.txt',  index_col='Hour')
+            '/SWUPT_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPT_BASE    = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/LWUPT_' + dom + '.txt',  index_col='Hour')
+            '/LWUPT_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPTC_BASE   = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/LWUPTC_'+dom+'.txt',  index_col='Hour')
+            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         SWUPTCLN_BASE = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/SWUPTCLN_'+dom+'.txt',  index_col='Hour')
+            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
         			
         #-- Load variables from NORES scenario
         SWUPT_nE      = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/SWUPT_'+dom+'.txt',  index_col='Hour')
+            '/SWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPT_nE      = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/LWUPT_'+dom+'.txt',  index_col='Hour')
+            '/LWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPTC_nE     = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/LWUPTC_'+dom+'.txt',  index_col='Hour')
+            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         SWUPTCLN_nE   = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/SWUPTCLN_'+dom+'.txt',  index_col='Hour')
+            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
                     
         #-- Load variables from BASE with no aerosol-rad interactions scenario
         SWUPT_B_nA    = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/SWUPT_'+dom+'.txt',  index_col='Hour')
+            '/SWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPT_B_nA    = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/LWUPT_'+dom+'.txt',  index_col='Hour')
+            '/LWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPTC_B_nA   = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/LWUPTC_'+dom+'.txt',  index_col='Hour')
+            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
 
         SWUPTCLN_B_nA = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/SWUPTCLN_'+dom+'.txt',  index_col='Hour')
+            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
 
 
         #-- Load variables from NORES with no aerosol-rad interactions scenario
         SWUPT_nE_nA   = pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/SWUPT_'+dom+'.txt',  index_col='Hour')
+            '/SWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPT_nE_nA   = pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/LWUPT_'+dom+'.txt',  index_col='Hour')
+            '/LWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
             
         LWUPTC_nE_nA  = pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/LWUPTC_'+dom+'.txt',  index_col='Hour')  
+            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')  
             
         SWUPTCLN_nE_nA= pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/SWUPTCLN_'+dom+'.txt',  index_col='Hour')  
+            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')  
 
         #-- Combine the arrays in lookup tables of all the information
         BASE_dict = { 'SWUPT_BASE':SWUPT_BASE,   'LWUPT_BASE':LWUPT_BASE, 
@@ -196,6 +195,8 @@ for scen in scen_list:
         #=====================================================================#
         #==     3.       Calculate the variables to plot                    ==#
         #=====================================================================#
+
+        #import pdb; pdb.set_trace()
         
         #-- Use RadDecomp_functions to calculate radiative effects:
         Delta_S, Delta_S_err = radfn.calc_Delta_S( BASE_dict, NOEMISS_dict, error_type)
