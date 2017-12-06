@@ -83,22 +83,17 @@ DATADir = COMPDir + 'model_data/rad_force_data/'
 OUTDir  = COMPDir + 'plots/rad_force/'
 
 #-- List emission scenarios for comparison
-scen_list = [ 'NDOWN_VBS_equilib_run_dry_v3.8.1' ] # scenario names for directory
+scen_list = [ 'NDOWN_VBS_equilib_run_dry_v3.8.1', 'NDOWN_VBS_equilib_run_wet_v3.8.1' ] # scenario names for directory
 # Link name to full name for titles on plots:
-scenario_name = { 'NDOWN_VBS_equilib_run_dry_v3.8.1':'BASE' }
-
-#-- Will assume we are finding difference to a scenario with a portion of 
-#     all emissions, or all emissions, removed (NOEMISS)
-scen_nE    = 'NDOWN_VBS_equilib_run_wet_v3.8.1'
-scen_nE_nA = 'NDOWN_VBS_equilib_run_wet_v3.8.1_nA'
+scen_names = [ 'DRY' , 'WET' ]
 
 #-- List subdomains
 dom_list = [ 'domain' ]
-dom_name = { 'domain':'FullDomain' }            
+dom_name = { 'domain':'Full Domain' }            
 
 #-- Limits on x- and y- axis: change a appropriate
-x_lim   = [ 0, 48] # hours in day
-x_ticks = [ 3, 6, 9, 12, 15, 18, 21, 24 ]
+x_lim   = [ 0, 72] # hours in day
+x_ticks = [ 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66 ]
 
 #-- Min and max radiative effect (in W/m2), for SW and LW plots
 sw_ylim = [-6, 6]
@@ -108,209 +103,98 @@ lw_ylim = [-2, 2]
 error_type = 'SE_corr'  # standard error corrected
 # error_type = 'SE'     # standard error (uncorrected)
 
-#=============================================================================#
-#==     2.       Load the data                                              ==#
-#=============================================================================#
 
 #-- Declare figure counter
 k = 0
 
-for scen in scen_list:
-    for dom in dom_list:
+# loop through the model domains to plot
+for dom in dom_list:
         
-        #-- Get name for scenario with no aero-rad interactions
-        scen_nA = scen+'_nA'
+    #=============================================================================#
+    #==     2.       Load the data                                              ==#
+    #=============================================================================#
 
-        #-- Load variables from BASE scenario
-        SWUPT_BASE    = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/SWUPT_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPT_BASE    = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/LWUPT_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPTC_BASE   = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        SWUPTCLN_BASE = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-        			
-        #-- Load variables from NORES scenario
-        SWUPT_nE      = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/SWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPT_nE      = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/LWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPTC_nE     = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        SWUPTCLN_nE   = pd.read_csv( DATADir + '/'+ scen_nE + '/' +
-            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-                    
-        #-- Load variables from BASE with no aerosol-rad interactions scenario
-        SWUPT_B_nA    = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/SWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPT_B_nA    = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/LWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPTC_B_nA   = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
+    BASE_dict = radfn.load_Files(DATADir,scen_list[0],'_nA',dom)
+    NOEMISS_dict = radfn.load_Files(DATADir,scen_list[1],'_nA',dom)
+                
 
-        SWUPTCLN_B_nA = pd.read_csv( DATADir + '/'+ scen_nA + '/' +
-            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-
-
-        #-- Load variables from NORES with no aerosol-rad interactions scenario
-        SWUPT_nE_nA   = pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/SWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPT_nE_nA   = pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/LWUPT_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-            
-        LWUPTC_nE_nA  = pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/LWUPTC_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')  
-            
-        SWUPTCLN_nE_nA= pd.read_csv( DATADir + '/'+ scen_nE_nA + '/' +
-            '/SWUPTCLN_'+dom+'_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')  
-
-        #-- Combine the arrays in lookup tables of all the information
-        BASE_dict = { 'SWUPT_BASE':SWUPT_BASE,   'LWUPT_BASE':LWUPT_BASE, 
-                      'LWUPTC_BASE':LWUPTC_BASE, 'SWUPTCLN_BASE':SWUPTCLN_BASE,
-                      'SWUPT_B_nA':SWUPT_B_nA,   'LWUPT_B_nA':LWUPT_B_nA,
-                      'LWUPTC_B_nA':LWUPTC_B_nA, 'SWUPTCLN_B_nA':SWUPTCLN_B_nA
-                    }
-
-        NOEMISS_dict = { 'SWUPT_nE':SWUPT_nE,         'LWUPT_nE':LWUPT_nE, 
-                         'LWUPTC_nE':LWUPTC_nE,       'SWUPTCLN_nE':SWUPTCLN_nE, 
-                         'SWUPT_nE_nA':SWUPT_nE_nA,   'LWUPT_nE_nA':LWUPT_nE_nA, 
-                         'LWUPTC_nE_nA':LWUPTC_nE_nA, 'SWUPTCLN_nE_nA':SWUPTCLN_nE_nA
-                       }
-
-        # Get an array of the time index
-        Time = SWUPT_BASE.index.values
+    # Get an array of the time index
+    Time = BASE_dict['SWUPT'].index.values
 
 
 
-        #=====================================================================#
-        #==     3.       Calculate the variables to plot                    ==#
-        #=====================================================================#
+    #=====================================================================#
+    #==     3.       Calculate the variables to plot                    ==#
+    #=====================================================================#
+    
+    #-- Use RadDecomp_functions to calculate radiative effects:
+    Delta_S, Delta_S_err = radfn.calc_Delta_S( BASE_dict, NOEMISS_dict, error_type)
+    Delta_L, Delta_L_err = radfn.calc_Delta_L( BASE_dict, NOEMISS_dict, error_type)        
 
-        #import pdb; pdb.set_trace()
-        
-        #-- Use RadDecomp_functions to calculate radiative effects:
-        Delta_S, Delta_S_err = radfn.calc_Delta_S( BASE_dict, NOEMISS_dict, error_type)
-        Delta_L, Delta_L_err = radfn.calc_Delta_L( BASE_dict, NOEMISS_dict, error_type)        
+    SW_DIRECT, SW_DIRECT_err     = radfn.calc_SW_DIRECT( BASE_dict, NOEMISS_dict, error_type)
+    SW_INDIRECT, SW_INDIRECT_err = radfn.calc_SW_INDIRECT( BASE_dict, NOEMISS_dict, error_type)
+    SW_SEMIDIRECT, SW_SEMIDIRECT_err = radfn.calc_SW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type)
+                               
+    LW_INDIRECT, LW_INDIRECT_err = radfn.calc_LW_INDIRECT( BASE_dict, NOEMISS_dict, error_type)
+    LW_SEMIDIRECT, LW_SEMIDIRECT_err = radfn.calc_LW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type)
+                               
 
-        SW_DIRECT, SW_DIRECT_err     = radfn.calc_SW_DIRECT( BASE_dict, NOEMISS_dict, error_type)
-        SW_INDIRECT, SW_INDIRECT_err = radfn.calc_SW_INDIRECT( BASE_dict, NOEMISS_dict, error_type)
-        SW_SEMIDIRECT, SW_SEMIDIRECT_err = radfn.calc_SW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type)
-                                   
-        LW_INDIRECT, LW_INDIRECT_err = radfn.calc_LW_INDIRECT( BASE_dict, NOEMISS_dict, error_type)
-        LW_SEMIDIRECT, LW_SEMIDIRECT_err = radfn.calc_LW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type)
-                                   
+    #=====================================================================#
+    #==     4.       Make Figures                                       ==#
+    #=====================================================================#
+    
 
-        #=====================================================================#
-        #==     4.       Make Figures                                       ==#
-        #=====================================================================#
-        
-        #-- Make SW effect plots:
-        fig = plt.figure(k, figsize=[10,6])
-        #ax = fig.add_subplot(121)
-        # make space for legend:
-        ax = fig.add_axes([0.15, 0.15, 0.6, 0.75])
-        
-        a = ax.errorbar(Time-0.15, SW_DIRECT, fmt="r-", yerr=SW_DIRECT_err, 
-                    lw=3.5,label="SW$_{\mathrm{DIRECT}}$", zorder=2, 
-                    capsize=5, capthick=2.5)
-        b = ax.errorbar(Time, SW_INDIRECT,  fmt="b--",   yerr=SW_INDIRECT_err,
-                    lw=4.5,label="SW$_{\mathrm{INDIRECT}}$", zorder=1, 
-                    capsize=5, capthick=2.5)
-        c = ax.errorbar(Time+0.15, SW_SEMIDIRECT, fmt="g-.", yerr=SW_SEMIDIRECT_err, 
-                    lw=3,label="SW$_{\mathrm{SEMIDIRECT}}$", zorder=3, 
+
+    #-- Make SW effect plots:
+    fig, ax = radfn.setup_figure(k)
+
+    
+    a = ax.errorbar(Time-0.15, SW_DIRECT, fmt="r-", yerr=SW_DIRECT_err, 
+                lw=3.5,label="SW$_{\mathrm{DIRECT}}$", zorder=2, 
+                capsize=5, capthick=2.5)
+    b = ax.errorbar(Time, SW_INDIRECT,  fmt="b--",   yerr=SW_INDIRECT_err,
+                lw=4.5,label="SW$_{\mathrm{INDIRECT}}$", zorder=1, 
+                capsize=5, capthick=2.5)
+    c = ax.errorbar(Time+0.15, SW_SEMIDIRECT, fmt="g-.", yerr=SW_SEMIDIRECT_err, 
+                lw=3,label="SW$_{\mathrm{SEMIDIRECT}}$", zorder=3, 
+                capsize=5, capthick=2.5)
+
+    radfn.finalise_and_print_figure(fig,ax,[a,b,c],'SW Forcings','SW_forcings_',OUTDir,scen_names,dom_name,dom,x_lim,sw_ylim,x_ticks)
+
+
+    #-- Add to figure counter
+    k = k+1
+
+
+    #-- LW radiation make plot
+    fig, ax = radfn.setup_figure(k)
+
+    a = ax.errorbar(Time-0.1, LW_INDIRECT,   yerr=LW_INDIRECT_err, fmt="b--", 
+                    lw=4, label="LW$_{\mathrm{INDIRECT}}$", zorder=1,
                     capsize=5, capthick=2.5)
 
-        ax.legend(handles = [a, b, c], bbox_to_anchor=(1.05, 0.75), loc=2, 
-                  borderaxespad=0, numpoints=1, fontsize = 16)
-        plt.title('SW Forcings, '+ scen + ',' + dom_name[dom], fontsize=21, y=1.03)
-#        plt.ylim(ylim[0], ylim[1])
-        ax.set_ylabel( 'SW Forcings Wm$^{-2}$', fontsize = 18)
-        ax.set_xlabel( 'Local Time ', fontsize = 18)
-        plt.xlim(x_lim[0], x_lim[1])
-        plt.ylim(sw_ylim[0], sw_ylim[1])
-        plt.yticks(fontsize = 16)
-        plt.xticks(x_ticks, fontsize = 16)
-        
-        #-- Save figure to pdf
-        outname = OUTDir + 'SW_forcings_' + scen + '_' + dom + '.pdf'
-        print('Saving file '+outname)
-        plt.savefig(outname , format='pdf')
-
-        #-- Add to figure counter
-        k = k+1
-
-        #-- Make LW effect plots:
-        fig = plt.figure(k, figsize=[10,6])
-        #ax = fig.add_subplot(121)
-        # make space for legend:
-        ax = fig.add_axes([0.15, 0.15, 0.6, 0.75])
-
-        #-- LW radiation make plot
-        a = ax.errorbar(Time-0.1, LW_INDIRECT,   yerr=LW_INDIRECT_err, fmt="b--", 
-                        lw=4, label="LW$_{\mathrm{INDIRECT}}$", zorder=1,
-                        capsize=5, capthick=2.5)
-
-        b = ax.errorbar(Time+0.1, LW_SEMIDIRECT, yerr=LW_SEMIDIRECT_err, fmt="g-.", 
-                        lw=3.5, label="LW$_{\mathrm{SEMIDIRECT}}$", zorder=2, 
-                        capsize=5, capthick=2.5)
-        ax.legend(handles = [a, b], bbox_to_anchor=(1.05, 0.75), loc=2, 
-                  borderaxespad=0,  numpoints=1, fontsize = 16)
-        plt.title('LW Forcings, '+ scen + ',' + dom_name[dom], fontsize=21, y=1.03)
-        ax.set_ylabel( 'LW Forcings Wm$^{-2}$', fontsize = 18)
-        ax.set_xlabel( 'Local time.', fontsize = 18)
-        plt.xlim(x_lim[0], x_lim[1])
-        plt.ylim(lw_ylim[0], lw_ylim[1])
-        plt.yticks(fontsize = 16)        
-        plt.xticks(x_ticks, fontsize = 16)
-        
-        #-- Save figure to pdf
-        outname = OUTDir + 'LW_forcings_' + scen + '_' + dom + '.pdf'        
-        print('Saving file '+outname)
-        plt.savefig(outname , format='pdf')
-       
-        #-- Add to figure counter
-        k = k+1
-        
-        #-- Make net forcing plots:
-        fig = plt.figure(k, figsize=[10, 6])
-        #ax = fig.add_subplot(121)
-        # make space for legend:
-        ax = fig.add_axes([0.15, 0.15, 0.6, 0.75])
-
-        a = ax.errorbar(Time-0.1, Delta_S, fmt="k-", yerr=Delta_S_err, 
-                    lw=3,label="$\Delta \mathrm{SW}_{TOA}$", zorder=1,
-                    capsize=5, capthick=2.5)
-                    
-        b = ax.errorbar(Time+0.1, Delta_L, fmt="k-.", yerr=Delta_L_err, 
-                    lw=4,label="$\Delta \mathrm{LW}_{TOA}$", zorder=2,
+    b = ax.errorbar(Time+0.1, LW_SEMIDIRECT, yerr=LW_SEMIDIRECT_err, fmt="g-.", 
+                    lw=3.5, label="LW$_{\mathrm{SEMIDIRECT}}$", zorder=2, 
                     capsize=5, capthick=2.5)
 
-        ax.legend(handles = [a, b], bbox_to_anchor=(1.05, 0.75), loc=2, 
-                  borderaxespad=0,  numpoints=1, fontsize = 16)
-        plt.title('Net Forcings, ' + scen + ',' + dom_name[dom], fontsize=21, y=1.03)
-        ax.set_ylabel( 'Net Forcings Wm$^{-2}$', fontsize = 18)
-        ax.set_xlabel( 'Local time', fontsize = 18)
-        plt.xlim(x_lim[0], x_lim[1])
-        plt.ylim(sw_ylim[0], sw_ylim[1])
-        plt.yticks(fontsize = 16)        
-        plt.xticks(x_ticks, fontsize = 16)
+    radfn.finalise_and_print_figure(fig,ax,[a,b],'LW Forcings','LW_forcings_',OUTDir,scen_names,dom_name,dom,x_lim,lw_ylim,x_ticks)
 
-        #-- Save figure to pdf
-        outname = OUTDir + 'Net_forcings_' + scen + '_' + dom + '.pdf'        
-        print('Saving file '+outname)
-        plt.savefig(outname , format='pdf')   
-        
-        #-- Add to counter
-        k = k+1
+   
+    #-- Add to figure counter
+    k = k+1
+    
+    #-- Make net forcing plots:
+    fig, ax = radfn.setup_figure(k)
+
+    a = ax.errorbar(Time-0.1, Delta_S, fmt="k-", yerr=Delta_S_err, 
+                lw=3,label="$\Delta \mathrm{SW}_{TOA}$", zorder=1,
+                capsize=5, capthick=2.5)
+                
+    b = ax.errorbar(Time+0.1, Delta_L, fmt="k-.", yerr=Delta_L_err, 
+                lw=4,label="$\Delta \mathrm{LW}_{TOA}$", zorder=2,
+                capsize=5, capthick=2.5)
+
+    radfn.finalise_and_print_figure(fig,ax,[a,b],'Net Forcings','Net_forcings_',OUTDir,scen_names,dom_name,dom,x_lim,sw_ylim,x_ticks)
+
 
 #=============================================================================#

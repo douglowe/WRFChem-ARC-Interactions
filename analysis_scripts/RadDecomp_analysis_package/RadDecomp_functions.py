@@ -56,6 +56,9 @@ sa847@cam.ac.uk
 """
 
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 
 #=====================================================================#
 #==     1.       FUNCTION DEFINITIONS                               ==#
@@ -88,27 +91,51 @@ Errors are calculated by summing the corrected standard error of all
 constituent errors in quadrature
 '''
 
+#-- Function for loading the scenario data
+def load_Files(DATADir,scen,alt_end,dom):
+
+	# initialise the output dictionary
+    out_dict = {}
+
+    # list of the input variables we're opening
+    var_list = [ 'SWUPT', 'LWUPT', 'LWUPTC', 'SWUPTCLN' ]
+    
+    # loop through variables, loading them for both scenarios (main, and supplementary), and add to dictionary
+    for var in var_list:
+        temp_array_a = pd.read_csv( DATADir + '/' + scen + '/' +
+            '/' + var + '_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
+        temp_array_b = pd.read_csv( DATADir + '/' + scen + alt_end + '/' +
+            '/' + var + '_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
+        out_dict.update({var:temp_array_a, var+alt_end:temp_array_b })
+    
+
+    return out_dict
+
+
+
+
+
 #-- Functions to calculate net radiative effects at TOA
-def calc_Delta_S( BASE_dict, NOEMISS_dict, error_type):
+def calc_Delta_S( BASE_dict, ALT_dict, error_type):
     
-    SWUPT_BASE = BASE_dict['SWUPT_BASE']
-    SWUPT_nE   = NOEMISS_dict['SWUPT_nE']
+    SWUPT_BASE = BASE_dict['SWUPT']
+    SWUPT_ALT  = ALT_dict['SWUPT']
     
-    Delta_S     = SWUPT_nE['avg'] - SWUPT_BASE['avg']
+    Delta_S     = SWUPT_ALT['avg'] - SWUPT_BASE['avg']
     Delta_S_err = np.sqrt(
-        np.power( SWUPT_nE[error_type],   2) +
+        np.power( SWUPT_ALT[error_type],   2) +
         np.power( SWUPT_BASE[error_type], 2) )
         
     return Delta_S, Delta_S_err
 
-def calc_Delta_L( BASE_dict, NOEMISS_dict, error_type):
+def calc_Delta_L( BASE_dict, ALT_dict, error_type):
     
-    LWUPT_BASE = BASE_dict['LWUPT_BASE']
-    LWUPT_NE   = NOEMISS_dict['LWUPT_nE']
+    LWUPT_BASE = BASE_dict['LWUPT']
+    LWUPT_ALT  = ALT_dict['LWUPT']
     
-    Delta_L     = LWUPT_NE['avg'] - LWUPT_BASE['avg']
+    Delta_L     = LWUPT_ALT['avg'] - LWUPT_BASE['avg']
     Delta_L_err = np.sqrt(
-        np.power( LWUPT_NE[error_type],   2) +
+        np.power( LWUPT_ALT[error_type],   2) +
         np.power( LWUPT_BASE[error_type], 2) )
         
     return Delta_L, Delta_L_err
@@ -118,63 +145,61 @@ def calc_Delta_L( BASE_dict, NOEMISS_dict, error_type):
 #-- Functions to calculate SW radiative effects
 
 #-- Calculate SW direct effect:
-# SW_Direct   =    (SWUPTCLN - SWUPT )_BASE - (SWUPTCLN - SWUPT)_nE
-def calc_SW_DIRECT( BASE_dict, NOEMISS_dict, error_type):
+# SW_Direct   =    (SWUPTCLN - SWUPT )_BASE - (SWUPTCLN - SWUPT)_ALT
+def calc_SW_DIRECT( BASE_dict, ALT_dict, error_type):
 
-    SWUPTCLN_BASE = BASE_dict['SWUPTCLN_BASE']
-    SWUPT_BASE    = BASE_dict['SWUPT_BASE']
-    SWUPTCLN_nE   = NOEMISS_dict['SWUPTCLN_nE']
-    SWUPT_nE      = NOEMISS_dict['SWUPT_nE']
+    SWUPTCLN_BASE = BASE_dict['SWUPTCLN']
+    SWUPT_BASE    = BASE_dict['SWUPT']
+    SWUPTCLN_ALT  = ALT_dict['SWUPTCLN']
+    SWUPT_ALT     = ALT_dict['SWUPT']
     
     
     SW_DIRECT     = SWUPTCLN_BASE['avg'] - SWUPT_BASE['avg'] - \
-                    SWUPTCLN_nE['avg']   + SWUPT_nE['avg']        
+                    SWUPTCLN_ALT['avg']   + SWUPT_ALT['avg']        
     SW_DIRECT_err = np.sqrt(
             np.power( SWUPTCLN_BASE[error_type], 2) +
             np.power( SWUPT_BASE[error_type],    2) +
-            np.power( SWUPTCLN_nE[error_type],   2) +
-            np.power( SWUPT_nE[error_type],      2) )
+            np.power( SWUPTCLN_ALT[error_type],   2) +
+            np.power( SWUPT_ALT[error_type],      2) )
             
     return SW_DIRECT, SW_DIRECT_err
 
 #-- Calculate SW indirect effect:        
-# SW_INDIRECT   = (SWDNTCLN - SWUPTCLN)_B_nA - (SWDNTCLN - SWUPTCLN)_nE_nA;
-def calc_SW_INDIRECT( BASE_dict, NOEMISS_dict, error_type):
+# SW_INDIRECT   = (SWDNTCLN - SWUPTCLN)_BASE_nA - (SWDNTCLN - SWUPTCLN)_ALT_nA;
+def calc_SW_INDIRECT( BASE_dict, ALT_dict, error_type):
 
-    SWUPTCLN_B_nA   = BASE_dict['SWUPTCLN_B_nA']
-    SWUPTCLN_nE_nA  = NOEMISS_dict['SWUPTCLN_nE_nA']
+    SWUPTCLN_BASE_nA   = BASE_dict['SWUPTCLN_nA']
+    SWUPTCLN_ALT_nA  = ALT_dict['SWUPTCLN_nA']
 
-    SW_INDIRECT     = SWUPTCLN_nE_nA['avg'] - SWUPTCLN_B_nA['avg']
+    SW_INDIRECT     = SWUPTCLN_ALT_nA['avg'] - SWUPTCLN_BASE_nA['avg']
     SW_INDIRECT_err = np.sqrt(
-        np.power( SWUPTCLN_nE_nA[error_type], 2) +
-        np.power( SWUPTCLN_B_nA[error_type],  2) )
+        np.power( SWUPTCLN_ALT_nA[error_type], 2) +
+        np.power( SWUPTCLN_BASE_nA[error_type],  2) )
         
     return SW_INDIRECT, SW_INDIRECT_err
     
 #-- Calculate SW semidirect effect:
 # SW_SEMIDIRECT = Delta_S - SW_DIRECT - SW_INDIRECT
-#               = SWUPT_nE - SWUPT_FE - 
-#                 (SWUPTCLN_BASE - SWUPT_BASE - SWUPTCLN_nE + SWUPT_nE ) -
-#                 (SWUPT_nE_nA - SWUPT_B_nA)
-#               = SWUPT_nE - SWUPT_FE - SWUPTCLN_FE + SWUPT_FE + SWUPTCLN_nE - SWUPT_nE 
-#                 - SWUPT_nE_nA + SWUPT_B_nA                 
-#               = SWUPTCLN_nE - SWUPTCLN_BASE - SWUPT_nE_nA + SWUPT_B_nA
-def calc_SW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type):
+#               = SWUPT_ALT - SWUPT_BASE - 
+#                 (SWUPTCLN_BASE - SWUPT_BASE - SWUPTCLN_ALT + SWUPT_ALT ) -
+#                 (SWUPT_ALT_nA - SWUPT_BASE_nA)
+#               = SWUPT_ALT - SWUPT_BASE - SWUPTCLN_BASE + SWUPT_BASE + SWUPTCLN_ALT - SWUPT_ALT 
+#                 - SWUPT_ALT_nA + SWUPT_BASE_nA                 
+#               = SWUPTCLN_ALT - SWUPTCLN_BASE - SWUPT_ALT_nA + SWUPT_BASE_nA
+def calc_SW_SEMIDIRECT( BASE_dict, ALT_dict, error_type):
 
-    SWUPTCLN_BASE = BASE_dict['SWUPTCLN_BASE']
-    SWUPT_B_nA    = BASE_dict['SWUPT_B_nA']
-    SWUPTCLN_nE   = NOEMISS_dict['SWUPTCLN_nE']
-    SWUPT_nE_nA   = NOEMISS_dict['SWUPT_nE_nA']
+    SWUPTCLN_BASE = BASE_dict['SWUPTCLN']
+    SWUPT_BASE_nA = BASE_dict['SWUPT_nA']
+    SWUPTCLN_ALT  = ALT_dict['SWUPTCLN']
+    SWUPT_ALT_nA  = ALT_dict['SWUPT_nA']
 
-    SWUPTCLN_nE - SWUPTCLN_BASE - SWUPT_nE_nA + SWUPT_B_nA
-
-    SW_SEMIDIRECT = SWUPTCLN_nE['avg'] - SWUPTCLN_BASE['avg'] - \
-                    SWUPT_nE_nA['avg'] + SWUPT_B_nA['avg']
+    SW_SEMIDIRECT = SWUPTCLN_ALT['avg'] - SWUPTCLN_BASE['avg'] - \
+                    SWUPT_ALT_nA['avg'] + SWUPT_BASE_nA['avg']
     SW_SEMIDIRECT_err = np.sqrt( 
-        np.power( SWUPTCLN_nE[error_type],   2) +
+        np.power( SWUPTCLN_ALT[error_type],   2) +
         np.power( SWUPTCLN_BASE[error_type], 2) + 
-        np.power( SWUPT_nE_nA[error_type],   2) +
-        np.power( SWUPT_B_nA[error_type],    2) )
+        np.power( SWUPT_ALT_nA[error_type],   2) +
+        np.power( SWUPT_BASE_nA[error_type],    2) )
         
     return SW_SEMIDIRECT, SW_SEMIDIRECT_err
 
@@ -185,62 +210,87 @@ def calc_SW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type):
 #!!! Note LW direct effect of aerosol is generally negligible, so is ignored !!
 
 #-- Calculate longwave indirect effect:
-# LW INDIRECT   = (LWDNT - LWUPT - LWDNTC + LWUPTC)_B_nA - 
-#   (LWDNT - LWUPT - LWDNTC + LWUPTC)_nE_nA
-#               =  (LWUPTC - LWUPT)_B_nA - (LWUPTC - LWUPT)_nE_nA
-def calc_LW_INDIRECT( BASE_dict, NOEMISS_dict, error_type):
+# LW INDIRECT   = (LWDNT - LWUPT - LWDNTC + LWUPTC)_BASE_nA - 
+#   (LWDNT - LWUPT - LWDNTC + LWUPTC)_ALT_nA
+#               =  (LWUPTC - LWUPT)_BASE_nA - (LWUPTC - LWUPT)_ALT_nA
+def calc_LW_INDIRECT( BASE_dict, ALT_dict, error_type):
     
-    LWUPTC_B_nA  = BASE_dict['LWUPTC_B_nA']
-    LWUPT_B_nA   = BASE_dict['LWUPTC_B_nA']
-    LWUPTC_nE_nA = NOEMISS_dict['LWUPTC_nE_nA']
-    LWUPT_nE_nA  = NOEMISS_dict['LWUPTC_nE_nA']
+    LWUPTC_BASE_nA = BASE_dict['LWUPTC_nA']
+    LWUPT_BASE_nA  = BASE_dict['LWUPTC_nA']
+    LWUPTC_ALT_nA  = ALT_dict['LWUPTC_nA']
+    LWUPT_ALT_nA   = ALT_dict['LWUPTC_nA']
     
-    LW_INDIRECT     = LWUPTC_B_nA['avg']  - LWUPT_B_nA['avg'] - \
-                      LWUPTC_nE_nA['avg'] + LWUPT_nE_nA['avg']
+    LW_INDIRECT     = LWUPTC_BASE_nA['avg']  - LWUPT_BASE_nA['avg'] - \
+                      LWUPTC_ALT_nA['avg'] + LWUPT_ALT_nA['avg']
     
     LW_INDIRECT_err = np.sqrt( 
-        np.power(LWUPTC_B_nA[error_type],  2) +
-        np.power(LWUPT_B_nA[error_type],   2) + 
-        np.power(LWUPTC_nE_nA[error_type], 2) +
-        np.power(LWUPT_nE_nA[error_type],  2) )
+        np.power(LWUPTC_BASE_nA[error_type],  2) +
+        np.power(LWUPT_BASE_nA[error_type],   2) + 
+        np.power(LWUPTC_ALT_nA[error_type], 2) +
+        np.power(LWUPT_ALT_nA[error_type],  2) )
     
     return LW_INDIRECT, LW_INDIRECT_err
 
 #-- Calculate longwave semidirect effect:
-# LW SEMIDIRECT = (LWUPTC - LWUPT)_B - (LWUPTC - LWUPT)_nE - LW_INDIRECT
-#               = LWUPTC_BASE - LWUPT_B - LWUPTC_nE + LWUPT_nE
-#                  - LWUPTC_B_nA + LWUPT_B_nA + LWUPTC_nE_nA - LWUPT_nE_nA
-def calc_LW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type):
+# LW SEMIDIRECT = (LWUPTC - LWUPT)_BASE - (LWUPTC - LWUPT)_ALT - LW_INDIRECT
+#               = LWUPTC_BASE - LWUPT_BASE - LWUPTC_ALT + LWUPT_ALT
+#                  - LWUPTC_BASE_nA + LWUPT_BASE_nA + LWUPTC_ALT_nA - LWUPT_ALT_nA
+def calc_LW_SEMIDIRECT( BASE_dict, ALT_dict, error_type):
 
-    LWUPTC_BASE  = BASE_dict['LWUPTC_BASE']
-    LWUPT_BASE   = BASE_dict['LWUPT_BASE']
-    LWUPTC_B_nA  = BASE_dict['LWUPTC_B_nA']
-    LWUPT_B_nA   = BASE_dict['LWUPT_B_nA']
+    LWUPTC_BASE    = BASE_dict['LWUPTC']
+    LWUPT_BASE     = BASE_dict['LWUPT']
+    LWUPTC_BASE_nA = BASE_dict['LWUPTC_nA']
+    LWUPT_BASE_nA  = BASE_dict['LWUPT_nA']
                         
-    LWUPTC_nE    = NOEMISS_dict['LWUPTC_nE']
-    LWUPT_nE     = NOEMISS_dict['LWUPT_nE']
-    LWUPTC_nE_nA = NOEMISS_dict['LWUPTC_nE_nA']
-    LWUPT_nE_nA  = NOEMISS_dict['LWUPT_nE_nA']
+    LWUPTC_ALT    = ALT_dict['LWUPTC']
+    LWUPT_ALT     = ALT_dict['LWUPT']
+    LWUPTC_ALT_nA = ALT_dict['LWUPTC_nA']
+    LWUPT_ALT_nA  = ALT_dict['LWUPT_nA']
 
 
     LW_SEMIDIRECT     = LWUPTC_BASE['avg']  - LWUPT_BASE['avg'] - \
-                        LWUPTC_nE['avg']    + LWUPT_nE['avg']   - \
-                        LWUPTC_B_nA['avg']  + LWUPT_B_nA['avg'] + \
-                        LWUPTC_nE_nA['avg'] - LWUPT_nE_nA['avg']
+                        LWUPTC_ALT['avg']    + LWUPT_ALT['avg']   - \
+                        LWUPTC_BASE_nA['avg']  + LWUPT_BASE_nA['avg'] + \
+                        LWUPTC_ALT_nA['avg'] - LWUPT_ALT_nA['avg']
                         
     LW_SEMIDIRECT_err = np.sqrt( 
         np.power(LWUPTC_BASE[error_type], 2) +
         np.power(LWUPT_BASE[error_type],  2) + 
-        np.power(LWUPTC_nE[error_type], 2) +
-        np.power(LWUPT_nE[error_type],  2) +
-        np.power(LWUPTC_B_nA[error_type],  2) +
-        np.power(LWUPT_B_nA[error_type],  2) +
-        np.power(LWUPTC_nE_nA[error_type],  2) +
-        np.power(LWUPT_nE_nA[error_type],  2) )
+        np.power(LWUPTC_ALT[error_type], 2) +
+        np.power(LWUPT_ALT[error_type],  2) +
+        np.power(LWUPTC_BASE_nA[error_type],  2) +
+        np.power(LWUPT_BASE_nA[error_type],  2) +
+        np.power(LWUPTC_ALT_nA[error_type],  2) +
+        np.power(LWUPT_ALT_nA[error_type],  2) )
         
     return LW_SEMIDIRECT, LW_SEMIDIRECT_err
 
 
+##### plotting functions
+
+def setup_figure(k):
+
+    fig = plt.figure(k, figsize=[10,6])
+    # make space for legend:
+    ax = fig.add_axes([0.15, 0.15, 0.6, 0.75])
+
+    return fig, ax
 
 
+def finalise_and_print_figure(fig,ax,handles,title_string,file_string,OUTDir,scen_names,dom_name,dom,x_lim,y_lim,x_ticks):
+
+    ax.legend(handles = handles, bbox_to_anchor=(1.05, 0.75), loc=2, 
+              borderaxespad=0, numpoints=1, fontsize = 16)
+    plt.title(title_string+', ' + scen_names[0] + ' - ' + scen_names[1] + ', ' + dom_name[dom], fontsize=21, y=1.03)
+    ax.set_ylabel( title_string+' Wm$^{-2}$', fontsize = 18)
+    ax.set_xlabel( 'Local Time ', fontsize = 18)
+    plt.xlim(x_lim[0], x_lim[1])
+    plt.ylim(y_lim[0], y_lim[1])
+    plt.yticks(fontsize = 16)
+    plt.xticks(x_ticks, fontsize = 16)
+    
+    #-- Save figure to pdf
+    outname = OUTDir + file_string + scen_names[0] + '-' + scen_names[1] + '_' + dom + '.pdf'
+    print('Saving file '+outname)
+    plt.savefig(outname , format='pdf')
 
