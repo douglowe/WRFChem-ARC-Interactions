@@ -11,8 +11,7 @@ All SW and LW radiative fluxes at the top of the atmosphere
 must also have been output. 
 
 The figures produced in this example are averaged diurnal radiative
-effects. However, it can easily be modified for other purposes - 
-the main 
+effects. However, it can easily be modified for other purposes.
 
 The data will come from domain (and sub-domain) analysis
 performed by the domain_2D_nest_avg.ncl script. This script
@@ -48,10 +47,10 @@ to make box-whisker plots.
 To decompose the radiative effects of a particular emission source into 
 direct, semi and indirect effects, a minimum of four scenarios are needed.
 The following convensions have been used to name scenarios:
-* B:     BASE scenario, with all emissions and aerosol-radiative interactions on
-* B_nA:  BASE scenario, but with aerosol-radiative interactions turned off
-* nE:    The NOEMISS scenario, with the emission source of interest removed
-* nE_nA: The NOEMISS scenario, but with aerosol-radiative interactions turned off 
+* BASE:     BASE scenario, with all processes to be tested (and aerosol-radiative interactions) on
+* BASE_nA:  BASE scenario, but with aerosol-radiative interactions turned off
+* ALT:      Alternative scenario, with the processes to be tested off (but aerosol-radiative interactions on)
+* ALT_nA:   Alternative scenario, but with aerosol-radiative interactions turned off 
 
 For details of the calculations, please see:
   Archer-Nicholls et al., ACP, 2016. doi:10.5194/acp-16-5573-2016
@@ -59,7 +58,7 @@ For details of the calculations, please see:
 
 This framework can easily be adaped for different questions. e.g., to compare
 present day with pre-industrial emissions, the BASE run would be present day, 
-and the nE run would be preindustrial emissions.
+and the Alternative run would be preindustrial emissions.
 
 08/06/2017
 Scott Archer-Nicholls
@@ -115,7 +114,7 @@ for dom in dom_list:
     #=============================================================================#
 
     BASE_dict = radfn.load_Files(DATADir,scen_list[0],'_nA',dom)
-    NOEMISS_dict = radfn.load_Files(DATADir,scen_list[1],'_nA',dom)
+    ALT_dict = radfn.load_Files(DATADir,scen_list[1],'_nA',dom)
                 
 
     # Get an array of the time index
@@ -128,15 +127,15 @@ for dom in dom_list:
     #=====================================================================#
     
     #-- Use RadDecomp_functions to calculate radiative effects:
-    Delta_S, Delta_S_err = radfn.calc_Delta_S( BASE_dict, NOEMISS_dict, error_type)
-    Delta_L, Delta_L_err = radfn.calc_Delta_L( BASE_dict, NOEMISS_dict, error_type)        
+    Delta_S, Delta_S_err = radfn.calc_Delta_S( BASE_dict, ALT_dict, error_type)
+    Delta_L, Delta_L_err = radfn.calc_Delta_L( BASE_dict, ALT_dict, error_type)        
 
-    SW_DIRECT, SW_DIRECT_err     = radfn.calc_SW_DIRECT( BASE_dict, NOEMISS_dict, error_type)
-    SW_INDIRECT, SW_INDIRECT_err = radfn.calc_SW_INDIRECT( BASE_dict, NOEMISS_dict, error_type)
-    SW_SEMIDIRECT, SW_SEMIDIRECT_err = radfn.calc_SW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type)
+    SW_DIRECT, SW_DIRECT_err     = radfn.calc_SW_DIRECT( BASE_dict, ALT_dict, error_type)
+    SW_INDIRECT, SW_INDIRECT_err = radfn.calc_SW_INDIRECT( BASE_dict, ALT_dict, error_type)
+    SW_SEMIDIRECT, SW_SEMIDIRECT_err = radfn.calc_SW_SEMIDIRECT( BASE_dict, ALT_dict, error_type)
                                
-    LW_INDIRECT, LW_INDIRECT_err = radfn.calc_LW_INDIRECT( BASE_dict, NOEMISS_dict, error_type)
-    LW_SEMIDIRECT, LW_SEMIDIRECT_err = radfn.calc_LW_SEMIDIRECT( BASE_dict, NOEMISS_dict, error_type)
+    LW_INDIRECT, LW_INDIRECT_err = radfn.calc_LW_INDIRECT( BASE_dict, ALT_dict, error_type)
+    LW_SEMIDIRECT, LW_SEMIDIRECT_err = radfn.calc_LW_SEMIDIRECT( BASE_dict, ALT_dict, error_type)
                                
 
     #=====================================================================#
