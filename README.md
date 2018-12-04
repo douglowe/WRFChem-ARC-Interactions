@@ -4,7 +4,7 @@ Modified Radiative Code for WRF-Chem to calculate Aerosol Radiative Effects.
 
 Contents of this repository are:
 
-WRF-Chem_code: modified files for a range of versions of WRF-Chem. Replace the original files with these in order to add the clean atmosphere radiative calls. From 4.0 onwards the code should be included in the release version, and so these will not be needed.
+WRF-Chem_code: modified files for a range of versions of WRF-Chem (upto 3.9.1). Replace the original files with these in order to add the clean atmosphere radiative calls. This code was added to WRF-Chem version 4.0, and so no modification of the code should be needed if you are using this version, or later.
 
 analysis_scripts: NCL scripts for extracting the necessary data, and python scripts for using this data for plotting the radiative forcings.
 
