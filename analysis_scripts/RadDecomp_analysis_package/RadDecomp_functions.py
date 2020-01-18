@@ -102,10 +102,10 @@ def load_Files(DATADir,scen,alt_end,dom):
     
     # loop through variables, loading them for both scenarios (main, and supplementary), and add to dictionary
     for var in var_list:
-        temp_array_a = pd.read_csv( DATADir + '/' + scen + '/' +
-            '/' + var + '_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
-        temp_array_b = pd.read_csv( DATADir + '/' + scen + alt_end + '/' +
-            '/' + var + '_' + dom + '_stats.txt',  index_col='Hour', sep='\s*,\s*', engine='python')
+        temp_array_a = pd.read_csv( DATADir + '/' + scen + '/' + '/' + var + '_' + dom + '_stats.txt',  
+                    index_col='Hour', sep='\s*,\s*', engine='python', header = 1 )
+        temp_array_b = pd.read_csv( DATADir + '/' + scen + alt_end + '/' + '/' + var + '_' + dom + '_stats.txt',  
+                    index_col='Hour', sep='\s*,\s*', engine='python', header = 1 )
         out_dict.update({var:temp_array_a, var+alt_end:temp_array_b })
     
 

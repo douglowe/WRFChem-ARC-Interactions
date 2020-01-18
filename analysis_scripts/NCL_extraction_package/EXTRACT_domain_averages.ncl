@@ -25,6 +25,12 @@ output_root_directory = root_directory+"plots/domain_averages_rad_balance/"
 ;;; list of scenarios to process
 scenarios_list = (/"NDOWN_VBS_equilib_run_wet_v3.8.1","NDOWN_VBS_equilib_run_dry_v3.8.1"/)
 
+;;; Flag which scenarios will have "clean" atmosphere data (same order as list above).
+;;;     Which will be the scenarios with radiative feedbacks switched on.
+;;;
+;;;     This use the standard (e.g. SWUPT) data, for outputting "clean" (e.g. SWUPTCLN) data.
+;;;     When there is no aerosol feedback these would be the same.
+scenarios_clean_data = (/ False, True /)
 
 ;;; variables for extraction of statistics
 plot_variables = (/ "SWUPT","SWUPTC","SWUPTCLN","SWDNT","SWDNTC","SWDNTCLN", \
@@ -126,6 +132,7 @@ maxlat@DE = 54
 do iscen=0,dimsizes(scenarios_list)-1
 
 	scenario = scenarios_list(iscen)
+	scenario_clean_flag = scenarios_clean_data(iscen)
 
 	;;; check that the output directory exists, if not then create it
 	system("if ! test -d  "+output_root_directory+" ; then mkdir "+output_root_directory+"; fi")
@@ -145,7 +152,8 @@ do iscen=0,dimsizes(scenarios_list)-1
 
 		print("  == loading variable")
 		;;; load variable to plot (extracting horizontal slices while we're at it)
-		plot_var = load_2D_3D_variable_and_sample_at_given_altitudes(DATA_FILES,plot_variables(ivar),altitude_levels)
+		plot_var = load_2D_3D_variable_and_sample_at_given_altitudes(DATA_FILES,plot_variables(ivar),\
+												altitude_levels,scenario_clean_flag)
 
 		print("  == calculate stats")
 		;;; calculate the domain stats

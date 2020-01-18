@@ -148,13 +148,22 @@ end
 
 
 undef("load_2D_3D_variable_and_sample_at_given_altitudes")
-function load_2D_3D_variable_and_sample_at_given_altitudes(FILES:list,var:string,altitude_levels:numeric)
+function load_2D_3D_variable_and_sample_at_given_altitudes(FILES:list,var:string,\
+								altitude_levels:numeric,clean_flag:logical)
 local var_temp, dimensions, dimnum, variable, alt_km
 begin
 
+	
+	; check if we should expect "clean" data, if not then replace with standard data
+	if(.not.clean_flag .and. isStrSubset(var,"CLN"))
+		var_extract_name = str_sub_str(var,"CLN","")
+		print("      substituting "+var_extract_name+" for "+var)
+	else
+		var_extract_name = var
+	end if
 		
 	; extract variable from FILES, assuming we want all times (and that it's a standard variable!!!)
-	var_temp = wrf_user_getvar(FILES,var,-1)
+	var_temp = wrf_user_getvar(FILES,var_extract_name,-1)
 
 
 	;;;; sampling through the altitude levels *if* it's needed!
@@ -383,6 +392,34 @@ begin
 end
 
 
+;
+;  Function for simply counting the hours from the start of the dataset
+;
+undef("calc_runtime_in_hours")
+function calc_runtime_in_hours(FILES:list,istart:integer,iend:integer)
+local hours, tempres, times_temp, times, times_a, restick
+begin
+
+	;;; temporary resources variable to attach the attribute to
+	tempres = True
+
+	;;; get characters of the time information
+	times_temp = wrf_user_getvar(FILES,"Times",-1)
+	times = times_temp(istart:iend,:)
+	;;; convert to integer string
+	times_a = wrf_times_c(times,1)
+	times_a@units = "hours since 1901-01-01 00:00:00"
+
+	;;; simply deduct the starting simulation time
+	hours = times_a - times_a(0)
+
+	return(hours)
+
+end
+
+
+
+
 
 
 ;
@@ -393,7 +430,7 @@ procedure write_stats_data(FILES:list,plot_stats:numeric,var_name:string,\
 							output_directory:string,scenario:string,\
 							altitude_levels:numeric,use_local_time:logical,\
 							region_select:logical)
-local nreg, dimensions, dimscount, time_strings, Times, ireg, output_file_name, output_file, \
+local nreg, dimensions, dimscount, time_strings, hours, Times, ireg, output_file_name, output_file, \
 		file_names, ilev, header_strings, level_limit, col_head_string, columns, cf, stat_order, \
 		itim, out_string_array, \
 		 OUTFILE, \
@@ -412,10 +449,10 @@ begin
 	dimensions = dimsizes(plot_stats)
 	dimscount = dimsizes(dimensions)
 
-	; get the time strings for our data sets
+	; get the time strings and "hours since start of data set", for our data sets
 	time_strings = create_local_time_strings(FILES,use_local_time,0,dimensions(1)-1)
+	hours = calc_runtime_in_hours(FILES,0,dimensions(1)-1)
 	Times = wrf_user_getvar(FILES,"Times",-1)
-
 
 
 	do ireg = 0,nreg-1
@@ -490,7 +527,7 @@ begin
 
 
 		; create the column header string
-		col_head_string = "Time, min, x05, x25, median, x75, x95, max, avg, stddev, SE, morans_i, SE_corr, N"
+		col_head_string = "Time, Hour, min, x05, x25, median, x75, x95, max, avg, stddev, SE, morans_i, SE_corr, N"
 		; set the statistical data order
 		stat_order = (/2, 7, 5, 4, 6, 8, 3, 0, 1, 9, 10, 11, 12/)
 
@@ -506,6 +543,7 @@ begin
 		do itim = 0, dimsizes(time_strings)-1
 		do ilev = 0, level_limit-1
 			columns(itim,ilev) = time_strings(itim)
+			columns(itim,ilev) = columns(itim,ilev) + cf+sprintf("%6.2f",hours(itim))
 			; loop through the stats, getting them into the order defined above
 			do istat = 0,dimsizes(stat_order)-1
 				if(dimscount .eq. 4) ; dealing with data that has altitude information				
