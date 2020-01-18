@@ -16,21 +16,20 @@ begin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;; script settings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-root_directory_a = "/nerc/n02/n02/davet80/Data_analysis/"
-root_directory = "/nerc/n02/n02/lowe/CCN-Vol_data_analysis/"
+root_directory = "../"
 
-input_root_directory  = root_directory_a+"Data_store/"
+input_root_directory  = root_directory
 output_root_directory = root_directory+"plots/domain_averages_rad_balance/"
 
 ;;; list of scenarios to process
-scenarios_list = (/"NDOWN_VBS_equilib_run_wet_v3.8.1","NDOWN_VBS_equilib_run_dry_v3.8.1"/)
+scenarios_list = (/"Basecase_nA","Basecase","Testcase_nA","Testcase"/)
 
 ;;; Flag which scenarios will have "clean" atmosphere data (same order as list above).
 ;;;     Which will be the scenarios with radiative feedbacks switched on.
 ;;;
 ;;;     This use the standard (e.g. SWUPT) data, for outputting "clean" (e.g. SWUPTCLN) data.
 ;;;     When there is no aerosol feedback these would be the same.
-scenarios_clean_data = (/ False, True /)
+scenarios_clean_data = (/ False, True, False, True /)
 
 ;;; variables for extraction of statistics
 plot_variables = (/ "SWUPT","SWUPTC","SWUPTCLN","SWDNT","SWDNTC","SWDNTCLN", \

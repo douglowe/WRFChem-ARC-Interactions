@@ -77,14 +77,14 @@ import RadDecomp_functions as radfn
 #=============================================================================#
 
 #-- Define directories to find the data
-COMPDir = '/Users/lowe/work/manchester/CCN-VOL/'
-DATADir = COMPDir + 'model_data/rad_force_data/'
-OUTDir  = COMPDir + 'plots/rad_force/'
+COMPDir = '../'
+DATADir = COMPDir + 'plots/domain_averages_rad_balance/'
+OUTDir  = COMPDir + 'plots/domain_averages_rad_balance/'
 
 #-- List emission scenarios for comparison
-scen_list = [ 'NDOWN_VBS_equilib_run_dry_v3.8.1', 'NDOWN_VBS_equilib_run_wet_v3.8.1' ] # scenario names for directory
+scen_list = [ 'Basecase', 'Testcase' ] # scenario names for directory
 # Link name to full name for titles on plots:
-scen_names = [ 'DRY' , 'WET' ]
+scen_names = [ 'Basecase description', 'Testcase description' ]
 
 #-- List subdomains
 dom_list = [ 'domain' ]
